@@ -1,1 +1,3 @@
-# http-crawler
+# Hoarder
+
+A small news aggregator.
