@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"net/http"
 	"sync"
 	"time"
 )
@@ -36,7 +37,7 @@ func Crawl(urls chan string) {
 	for {
 		for url := range urls {
 			if seen.Get(url) {
-				return
+				continue
 			}
 			go fetch(url)
 		}
@@ -46,6 +47,12 @@ func Crawl(urls chan string) {
 
 func fetch(url string) {
 	seen.Add(url)
+	resp, err := http.Get(url)
+	if err != nil {
+		fmt.Println("Couldn't retrieve ", url, ", error: ", err)
+		return
+	}
+	fmt.Println("Response ", resp)
 	processed <- url
 }
 
@@ -54,6 +61,8 @@ func main() {
 	go Crawl(urls)
 	urls <- "http://google.com"
 	urls <- "http://bing.com"
+	urls <- "http://facebook.com"
+	urls <- "http://facebook.com"
 	urls <- "http://facebook.com"
 	urls <- "twitter.com"
 
@@ -69,6 +78,7 @@ func main() {
 		case url := <-processed:
 			// a read from ch has occurred
 			fmt.Println("Processed ", url)
+			fmt.Println("Url has been seen: ", seen.Get(url))
 		case <-timeout:
 			// the read from ch has timed out
 			fmt.Println("Timeout")
